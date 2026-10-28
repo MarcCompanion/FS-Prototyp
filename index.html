@@ -1,0 +1,504 @@
+<!doctype html>
+<html lang="de">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="robots" content="noindex, nofollow">
+<title>FormServ Prototyp</title>
+<style>
+:root{--bg:#f2f2f2;--card:#fff;--ink:#1a1a1a;--mut:#5f5f5f;--line:#d9d9d9;--acc:#262626;--acc2:#2f5d7c;--ok:#1d7a46;--warn:#9a6200;--warnbg:#fff6e0;--err:#b3261e;--mark:#fff1c2;--bbg:#4a3b7a;--mail:#0b6e6e}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--ink);font:15px/1.45 Arial,Helvetica,sans-serif}
+header{background:var(--acc);color:#fff;padding:10px 16px;display:flex;align-items:center;gap:12px;flex-wrap:wrap}
+header b{font-size:16px}
+.hbtn{background:transparent;color:#fff;border:1px solid rgba(255,255,255,.4);padding:4px 10px;font-size:13px}
+.hbtn.on{background:#fff;color:var(--acc)}
+#dots{display:flex;gap:4px;flex-wrap:wrap;margin-left:auto}
+#dots span{width:10px;height:10px;border-radius:50%;background:rgba(255,255,255,.3);cursor:pointer}
+#dots span.on{background:#fff}#dots span.done{background:rgba(255,255,255,.65)}
+main{max-width:1180px;margin:0 auto;padding:16px;display:grid;grid-template-columns:330px 1fr;gap:16px}
+body.pres main{grid-template-columns:1fr;max-width:1000px}body.pres .narr{display:none}
+body.noop .open,body.noop .opn{display:none!important}
+@media(max-width:860px){main{grid-template-columns:1fr}}
+.narr{background:var(--card);border-radius:10px;padding:16px;border:1px solid var(--line);align-self:start;position:sticky;top:12px}
+@media(max-width:860px){.narr{position:static}}
+.narr .step{font-size:12px;color:var(--mut);text-transform:uppercase;letter-spacing:.05em}
+.narr h2{margin:4px 0 8px;font-size:20px}
+.narr p{margin:0 0 10px}
+.caption{display:none;margin-bottom:8px}
+body.pres .caption{display:flex;justify-content:space-between;align-items:center;gap:8px}
+.caption h2{margin:0;font-size:20px}
+.kap{display:inline-block;background:#ececec;color:var(--acc);border-radius:20px;padding:2px 10px;font-size:12px;margin:0 4px 6px 0}
+.open{background:var(--warnbg);border-left:4px solid var(--warn);padding:8px 10px;border-radius:6px;font-size:13px;margin-top:8px}
+.open b{color:var(--warn)}
+.opn{display:inline-block;font-size:11px;background:var(--warnbg);color:var(--warn);border-radius:20px;padding:1px 8px;margin-left:6px}
+.nav{display:flex;gap:8px;margin-top:14px}
+button{font:inherit;border-radius:6px;border:1px solid var(--line);background:#fff;padding:8px 14px;cursor:pointer;color:var(--ink)}
+button.pri{background:var(--acc2);border-color:var(--acc2);color:#fff}
+button.sec{background:#f4f4f4}
+button.bbg{background:var(--bbg);border-color:var(--bbg);color:#fff}
+button.red{background:#fff;border-color:var(--err);color:var(--err)}
+button:disabled{opacity:.45;cursor:default}
+.stagewrap{min-width:0}
+.sys{display:flex;align-items:center;gap:8px;background:#3a3a3a;color:#fff;border-radius:10px 10px 0 0;padding:8px 12px;font-size:13px}
+.sys i{width:10px;height:10px;border-radius:50%;background:#ff5f57;display:inline-block;box-shadow:16px 0 #febc2e,32px 0 #28c840;margin-right:36px}
+.sys .url{background:rgba(255,255,255,.12);border-radius:6px;padding:2px 10px;flex:1;overflow:hidden;white-space:nowrap;text-overflow:ellipsis}
+.sys.bbg{background:var(--bbg)}.sys.mail{background:var(--mail)}.sys.back{background:#666}
+.stage{background:var(--card);border:1px solid var(--line);border-top:0;border-radius:0 0 10px 10px;padding:18px;min-height:420px}
+.stage h3{margin:0 0 12px;font-size:19px}
+.row{display:grid;grid-template-columns:1fr 1fr;gap:10px}@media(max-width:560px){.row{grid-template-columns:1fr}}
+label{display:block;font-size:13px;color:var(--mut);margin:8px 0 3px}
+input[type=text],input[type=date],select,textarea{width:100%;font:inherit;padding:8px;border:1px solid var(--line);border-radius:6px;background:#fff}
+.err input,.err select{border-color:var(--err)}.errmsg{color:var(--err);font-size:12px}
+.hint{font-size:12px;color:var(--mut)}
+.pref{background:#eef6ee}
+.marked{background:var(--mark);border-radius:8px;padding:6px 8px;margin:4px -8px}
+.marked .sb{font-size:12px;color:var(--warn)}
+.chg{background:#e3f4e8;border-radius:8px}
+div.chg{padding:2px 8px;margin:0 -8px}
+.steps{display:flex;gap:6px;margin-bottom:14px;flex-wrap:wrap;align-items:center}
+.steps span{font-size:12px;padding:3px 10px;border-radius:20px;background:#efefef;color:var(--mut)}
+.steps span.on{background:var(--acc2);color:#fff}
+.lang{margin-left:auto;font-size:12px}.lang a{cursor:pointer;padding:0 4px;color:var(--mut)}.lang a.on{color:var(--ink);font-weight:bold}
+.actions{display:flex;gap:8px;justify-content:flex-end;margin-top:16px;flex-wrap:wrap;align-items:center}
+.box{border:1px solid var(--line);border-radius:8px;padding:12px;margin:10px 0}
+.box.hl{border-color:var(--warn);background:var(--warnbg)}
+.box.okb{border-color:var(--ok);background:#ecf7f0}
+.box.nob{border-color:var(--err);background:#fdeceb}
+.box.var{border-style:dashed}
+.tbl{width:100%;border-collapse:collapse;font-size:14px}.tbl td,.tbl th{border-bottom:1px solid var(--line);padding:7px 6px;text-align:left;vertical-align:top}
+.badge{display:inline-block;font-size:12px;border-radius:20px;padding:2px 9px;background:#ececec;color:var(--acc)}
+.badge.w{background:var(--warnbg);color:var(--warn)}.badge.g{background:#e3f4e8;color:var(--ok)}.badge.grey{background:#eee;color:#666}.badge.r{background:#fdeceb;color:var(--err)}
+.att{display:flex;justify-content:space-between;align-items:center;gap:8px;padding:8px 0;border-bottom:1px solid var(--line)}
+.mailbox{border:1px solid var(--line);border-radius:8px;overflow:hidden;margin-bottom:10px}
+.mailhead{background:#f4f4f4;padding:10px 12px;font-size:13px}
+.mailbody{padding:14px}
+.link{color:var(--acc2);text-decoration:underline;cursor:pointer}
+.flow{display:flex;align-items:center;gap:8px;flex-wrap:wrap;margin:14px 0}
+.node{flex:1;min-width:140px;border:2px solid var(--line);border-radius:8px;padding:10px;text-align:center;transition:.3s}
+.node.act{border-color:var(--acc2);background:#eaf1f6}.node.ok{border-color:var(--ok);background:#ecf7f0}.node.bad{border-color:var(--err);background:#fdeceb}
+.arrow{font-size:20px;color:var(--mut)}
+.log{font-family:ui-monospace,Menlo,monospace;font-size:12px;background:#1e1e1e;color:#d6e6f5;border-radius:8px;padding:10px;min-height:90px;white-space:pre-wrap}
+details{border:1px solid var(--line);border-radius:8px;padding:8px 12px;margin:10px 0}
+summary{cursor:pointer;font-weight:bold}
+.tl{border-left:2px solid var(--line);margin:8px 0 0 6px;padding-left:14px}
+.tl div{margin-bottom:8px;font-size:14px}.tl small{color:var(--mut)}
+.toast{position:fixed;bottom:90px;left:50%;transform:translateX(-50%);background:#2b2b2b;color:#fff;padding:10px 16px;border-radius:8px;opacity:0;transition:.3s;pointer-events:none;z-index:9}
+.toast.on{opacity:1}
+footer{position:sticky;bottom:0;background:#fff;border-top:1px solid var(--line);padding:8px 16px;font-size:12px}
+.chain{display:flex;align-items:center;gap:4px;flex-wrap:wrap;margin:3px 0}
+.chain b{width:120px;color:var(--mut)}
+.chain span{padding:2px 8px;border-radius:20px;background:#f0f0f0;color:#8a8a8a}
+.chain span.on{background:var(--acc2);color:#fff}
+.chain span.alt{border:1px dashed #c8c8c8}
+@media(max-width:560px){.chain b{width:100%}.chain span{font-size:11px;padding:1px 6px}footer{padding:6px 10px}}
+.big{font-size:40px;text-align:center;margin:10px 0}
+.choice{display:grid;grid-template-columns:1fr 1fr;gap:12px}@media(max-width:560px){.choice{grid-template-columns:1fr}}
+.choice .box{cursor:pointer}.choice .box:hover{border-color:var(--acc2)}
+.grid3{display:grid;grid-template-columns:repeat(3,1fr);gap:10px}@media(max-width:560px){.grid3{grid-template-columns:1fr}}
+.msg{background:#eaf1f6;border-radius:8px;padding:8px 10px;margin:6px 0;font-size:14px}
+</style>
+</head>
+<body>
+<div style="background:#fff3cd;color:#5c4400;padding:6px 16px;font-size:13px;text-align:center">Prototyp zur Diskussion · keine offizielle Seite des Kantons · alle Daten sind fiktiv</div>
+<header><b>FormServ (P038) · Prototyp Gesuchsprozess</b>
+<button class="hbtn" id="bPres" onclick="togPres()" title="Taste N">Notizen ausblenden</button>
+<div id="dots"></div></header>
+<main>
+  <aside class="narr" id="narr"></aside>
+  <section class="stagewrap"><div class="caption" id="cap"></div><div class="sys" id="sys"></div><div class="stage" id="stage"></div></section>
+</main>
+<footer>
+  <div class="chain" id="ch1"></div>
+  <div class="chain" id="ch2"></div>
+</footer>
+<div class="toast" id="toast"></div>
+<script>
+const E_ST=['Entwurf','Eingereicht','Übermittelt','Übermittlung ausstehend'];
+const G_ST=['Eingegangen','In Prüfung','Anforderung offen','Entschieden','Abgeschlossen'];
+const ENR='E-2026-004711',GNR='BBG-26-01234',MNR='E-2026-005020',MGNR='BBG-26-01390';
+const EK={name:'Anna Muster',adresse:'Rheinweg 12, 4058 Basel',email:'anna.muster@example.ch'};
+const DEF={name:'Anna Muster',adresse:'Rheinweg 12, 4058 Basel',email:'anna.muster@example.ch',vertretung:false,liegenschaft:'Feldbergstrasse 40, 4057 Basel',parzelle:'1234',art:'Neuanschluss',gewerbe:'ja',abwasser:'Küchenabwasser Restaurant',plan:true,konzept:true,vollmacht:false};
+const L={name:'Name Gesuchsteller',adresse:'Adresse Gesuchsteller',email:'E-Mail',eigentum:'Eigentümerschaft',liegenschaft:'Adresse Liegenschaft',parzelle:'Parzellennummer',art:'Art des Vorhabens',gewerbe:'Gewerbliches Abwasser',abwasser:'Art des gewerblichen Abwassers',plan:'Situationsplan (PDF)',konzept:'Entwässerungskonzept (PDF)',vollmacht:'Vollmacht (PDF)'};
+const S0=()=>({flow:'gesuch',mode:'ekonto',step:0,d:{},err:{},code:false,codeOk:false,gd:0,fail:false,marks:['parzelle','plan'],sbText:'Die Parzellennummer passt nicht zur Adresse. Bitte prüfen und einen aktuellen Situationsplan beilegen.',frist:'2026-11-27',v2:null,nt:null,ntBase:null,ntChanged:[],flowStep:0,closed:false,entscheid:'bewilligung',msgs:[],showFrist:false,lang:'DE'});
+let S=S0();
+const $=id=>document.getElementById(id);
+function toast(t){const e=$('toast');e.textContent=t;e.classList.add('on');setTimeout(()=>e.classList.remove('on'),2400)}
+function fill(){for(const k in DEF) if(S.d[k]===undefined||S.d[k]==='') S.d[k]=DEF[k]}
+const gast=()=>S.mode==='gast';
+const abl=()=>S.entscheid==='ablehnung';
+const opn=t=>'';
+
+
+const FORMS=[
+ {id:'veranst',cat:'Allmend',t:'Veranstaltung auf öffentlichem Grund',u:'Veranstaltung oder temporäre kommerzielle Nutzung auf Allmend',typ:'Gesuch',pdf:1,vor:['abfall','sicher']},
+ {id:'boulevard',cat:'Allmend',t:'Boulevardrestaurant',u:'Nutzung einer Boulevardfläche (Gastro)',typ:'Gesuch',pdf:1,vor:['abfall']},
+ {id:'perm',cat:'Allmend',t:'Permanente kommerzielle Nutzung',u:'z. B. Warenauslagen, Reklamereiter',typ:'Gesuch',pdf:1},
+ {id:'aufgrab',cat:'Allmend',t:'Meldung baulicher Aufgrabungen',u:'Meldung von baulichen Aufgrabungen',typ:'Meldung',pdf:1,ex:1},
+ {id:'baubew',cat:'Allmend',t:'Baubewilligung auf öffentlichem Grund',u:'Baubewilligungen auf öffentlichem Grund',typ:'Gesuch',pdf:1},
+ {id:'tempbau',cat:'Allmend',t:'Temporäre bauliche Nutzung',u:'Bauinstallationen',typ:'Gesuch',pdf:1},
+ {id:'klein',cat:'Allmend',t:'Kleinstnutzung',u:'Meldeverfahren für kleine Nutzungen',typ:'Meldung',pdf:1,ex:1},
+ {id:'gitter',cat:'Allmend',t:'Absperrgitter mieten',u:'Miete von Absperrgittern',typ:'Bestellung',ex:1},
+ {id:'kanal',cat:'Entwässerung',t:'Kanalisationsbegehren',u:'Haus- und Grundstückentwässerung, Versickerungen, Direkteinleitungen, Abwasservorbehandlungsanlagen',typ:'Gesuch',main:1},
+ {id:'dreh',cat:'Weitere Formulare',t:'Gesuch für Dreh- und Fotoarbeiten',u:'Filmen und Fotografieren auf öffentlichem Grund',typ:'Gesuch',fmt:1},
+ {id:'bewerb',cat:'Weitere Formulare',t:'Formular für Bewerbende',u:'Verkaufen und Bewirten',typ:'Gesuch',fmt:1},
+];
+const VORL={abfall:'Abfallkonzept für Veranstaltungen und Buvetten',sicher:'Vorlage Sicherheitskonzept (Word)'};
+const CATS=[['Allmend','Tiefbauamt · Allmendverwaltung'],['Entwässerung','Tiefbauamt · Entwässerung'],['Weitere Formulare','Tiefbauamt']];
+function fcard(f){return `<div class="box fc" data-q="${(f.t+' '+f.u).toLowerCase()}" style="cursor:pointer;margin:0" onclick="openF('${f.id}')"><b>${f.t}</b><div class="hint">${f.u}</div><div style="margin-top:6px"><span class="badge ${f.typ==='Meldung'?'w':''}">${f.typ}</span> ${f.ex?'<span class="badge g">Express</span>':''}</div></div>`}
+function openF(id){if(id==='kanal'){goto('kdetail');return}S.detail=id;render();window.scrollTo({top:0,behavior:'smooth'})}
+function filt(q){q=q.toLowerCase();document.querySelectorAll('.fc').forEach(e=>e.style.display=e.dataset.q.includes(q)?'':'none')}
+function fdetail(f,back){return `<p><span class="link" onclick="${back}">◀ Zurück</span></p><h3>${f.t}</h3><p>${f.u}</p>
+ <table class="tbl"><tr><td class="hint">Art</td><td>${f.typ}</td></tr><tr><td class="hint">Zuständig</td><td>${(CATS.find(c=>c[0]===f.cat)||[])[1]}</td></tr>
+ <tr><td class="hint">Anmeldung</td><td>${f.ex?'Expressformular ohne Anmeldung möglich':'Mit eKonto oder als Gast'}</td></tr>
+ <tr><td class="hint">Online</td><td>${f.fmt?'Format zu klären':'Ja'}</td></tr></table>
+ ${f.pdf||f.vor?`<div class="box"><b>Downloads</b>${f.pdf?`<div class="att"><span>Leeres Formular zum Drucken (PDF)</span><span class="link">Download</span></div>`:''}${(f.vor||[]).map(v=>`<div class="att"><span>${VORL[v]}</span><span class="link">Download</span></div>`).join('')}</div>`:''}
+ <div class="actions"><button class="pri" onclick="${f.main?"goto('start')":"toast('Im Prototyp ist nur das Kanalisationsbegehren umgesetzt')"}">Online starten</button></div>`}
+function goto(id){S.detail=null;S.step=list().findIndex(x=>x.id===id);enter()}
+const AQ={root:{q:'Worum geht es?',o:[['Öffentlichen Grund nutzen','allmend'],['Abwasser und Entwässerung','abw'],['Filmen oder Fotografieren','=dreh'],['Verkaufen und Bewirten','=bewerb']]},
+ allmend:{q:'Was planen Sie?',o:[['Einen Anlass oder Markt','=veranst'],['Tische vor meinem Restaurant','=boulevard'],['Bauarbeiten oder eine Baustelle','bau'],['Eine kleine, kurze Nutzung','=klein'],['Absperrgitter ausleihen','=gitter'],['Dauerhafte Warenauslage oder Reklame','=perm']]},
+ bau:{q:'Was genau?',o:[['Ich grabe im öffentlichen Grund','=aufgrab'],['Bauinstallation, Gerüst, Mulde','=tempbau'],['Ein Bauwerk auf öffentlichem Grund','=baubew']]},
+ abw:{q:'Was planen Sie?',o:[['Neuer oder geänderter Hausanschluss','=kanal'],['Versickerung von Regenwasser','=kanal'],['Direkteinleitung in ein Gewässer','=kanal'],['Abwasservorbehandlung (z. B. Gewerbe)','=kanal']]}};
+function aPick(x){if(x[0]==='='){S.aRes=x.slice(1)}else{S.aPath.push(x)}render()}
+
+/* ---------- Szenen ---------- */
+const SC=[
+{id:'intro',sys:['back','Einführung'],kap:[],t:'Worum es geht',
+ n:'Dieser Prototyp zeigt den Gesuchsprozess aus dem Fachkonzept als Durchlauf. Wir spielen ein Kanalisationsbegehren von der Einreichung bis zum Abschluss durch, aus Sicht des Gesuchstellers und der Sachbearbeitung.',
+ extra:'Bedienung: Pfeiltasten für Weiter und Zurück und Taste N blendet die Notizen aus.',
+ r:()=>`<h3>Ein Geschäft, drei Arten von Eingaben</h3>
+ <div class="grid3">
+  <div class="box"><div class="big">📝</div><b>Ersteingabe</b><p class="hint">Der Gesuchsteller eröffnet das Geschäft.</p></div>
+  <div class="box"><div class="big">📨</div><b>Anforderung</b><p class="hint">Der Kanton löst in BBG+ eine Ergänzung oder eine Meldung aus. Der Gesuchsteller erfährt, was er noch einreichen muss.</p></div>
+  <div class="box"><div class="big">➕</div><b>Nachtrag</b><p class="hint">Der Gesuchsteller meldet eine Änderung von sich aus.</p></div>
+ </div>
+ <p>Unten ist jederzeit der Status der Eingabe und des Geschäfts sichtbar.</p>
+ <p class="hint">Alle Daten, Namen und Nummern sind erfunden. Gestaltung und Bedienung sind nur skizziert und kein offizielles Erscheinungsbild.</p>
+ <div class="actions"><button onclick="restart('meldung')">Kurzer Durchlauf: eigenständige Meldung</button><button class="pri" onclick="next()">Durchlauf Gesuch starten</button></div>`},
+
+{id:'katalog',sys:['','www.kanton.example/formulare'],kap:['3 Einstiegswege'],t:'Zuerst das Anliegen: alle Formulare',st:[null,null],
+ n:'Der User kommt zuerst auf die Formularseite und sieht alle Formulare auf einen Blick. Erst wenn klar ist, welches Formular passt, geht es um die Anmeldung. So können einfache Expressformulare später auch ganz ohne Anmeldung laufen.',
+ extra:'Jede Kachel öffnet eine Detailseite mit Art, Anmeldung und Downloads. Die Suche filtert sofort. Wer nicht weiss, welches Formular passt, nutzt den Assistenten.',
+ enter:()=>{S.detail=null},
+ r:()=>{if(S.detail)return fdetail(FORMS.find(f=>f.id===S.detail),"S.detail=null;render()");
+ return `<h3>Formulare Tiefbauamt</h3><div style="display:flex;gap:8px;flex-wrap:wrap"><input type="text" placeholder="Suchen, z. B. Boulevard, Kanalisation, Gitter" oninput="filt(this.value)" style="flex:1;min-width:220px"><button class="pri" onclick="goto('assist')">Welches Formular brauche ich?</button></div>
+ ${CATS.map(c=>`<h4 style="margin:18px 0 4px">${c[0]}</h4><div class="hint" style="margin-bottom:8px">${c[1]}</div><div class="grid3">${FORMS.filter(f=>f.cat===c[0]).map(fcard).join('')}</div>`).join('')}
+ <h4 style="margin:18px 0 8px">Vorlagen und Beilagen</h4>${Object.values(VORL).map(v=>`<div class="att"><span>${v}</span><span class="link">Download</span></div>`).join('')}
+ <p class="hint" style="margin-top:12px">«Express» = Formular ohne Anmeldung.</p>`}},
+
+{id:'assist',sys:['','www.kanton.example/formulare/assistent'],kap:['3 Einstiegswege'],t:'Der Assistent hilft beim Finden',st:[null,null],
+ n:'Wer das passende Formular nicht kennt, beantwortet zwei oder drei einfache Fragen und landet direkt beim richtigen Formular.',
+ extra:'Im Beispiel wählen wir «Abwasser und Entwässerung» und dann «Neuer oder geänderter Hausanschluss».',
+ enter:()=>{S.aPath=['root'];S.aRes=null},
+ r:()=>{if(S.aRes){const f=FORMS.find(x=>x.id===S.aRes);return `<div class="box okb"><b>Passendes Formular gefunden</b></div>`+fdetail(f,"S.aRes=null;render()")}
+ const k=S.aPath[S.aPath.length-1],n=AQ[k];
+ return `<h3>Welches Formular brauche ich?</h3><p class="hint">Frage ${S.aPath.length}</p><p style="font-size:17px"><b>${n.q}</b></p>
+ <div class="choice">${n.o.map(o=>`<div class="box" onclick='aPick(${JSON.stringify(o[1])})'>${o[0]}</div>`).join('')}</div>
+ <div class="actions">${S.aPath.length>1?'<button class="sec" onclick="S.aPath.pop();render()">Zurück</button>':''}<button class="sec" onclick="goto('katalog')">Zur Übersicht</button></div>`}},
+
+{id:'kdetail',sys:['','www.kanton.example/formulare/kanalisationsbegehren'],kap:['3 Einstiegswege'],t:'Detailseite Kanalisationsbegehren',st:[null,null],
+ n:'Die Detailseite erklärt, wofür das Formular gilt und ob eine Anmeldung nötig ist. Beim Kanalisationsbegehren braucht es eine Identifikation, mit eKonto oder als Gast.',
+ r:()=>fdetail(FORMS.find(f=>f.id==='kanal'),"goto('katalog')")},
+
+{id:'start',sys:['','formulare.kanton.example/kanalisationsbegehren/start'],kap:['3 Einstiegswege'],t:'Erst jetzt: Anmeldung',st:[null,null],
+ n:'Das Anliegen ist geklärt. Erst jetzt wählt die Person, ob sie sich mit ihrem eKonto anmeldet oder als Gast fortfährt. Beide Wege führen ins gleiche Formular.',
+ r:()=>`<h3>Kanalisationsbegehren online starten</h3>
+ <p>Für dieses Formular brauchen wir Ihre Identifikation. Wählen Sie, wie Sie fortfahren möchten.</p>
+ <div class="choice">
+  <div class="box" onclick="S.mode='ekonto';next()"><b>🔐 Mit eKonto anmelden</b><p class="hint">Anmeldung über AGOV. Ihre Daten werden übernommen, Sie sehen alle Ihre Geschäfte im ePortal.</p><button class="pri">Anmelden</button></div>
+  <div class="box" onclick="S.mode='gast';next()"><b>👤 Als Gast fortfahren</b><p class="hint">Ohne Konto. Sie bestätigen Ihre E-Mail-Adresse mit einem Code. Rückmeldungen erhalten Sie per E-Mail.</p><button>Als Gast</button></div>
+ </div>`},
+
+{id:'login',only:'ekonto',sys:['','login.example · AGOV-Anmeldung simuliert'],kap:['3.1 Einstieg mit eKonto'],t:'Anmeldung über AGOV',st:[null,null],
+ n:'Wer ein eKonto hat, meldet sich über AGOV an. Danach ist die Person bekannt, und ihre Daten können ins Formular übernommen werden.',
+ r:()=>`<h3>AGOV Login (simuliert)</h3><p class="hint">Nur eine Skizze. Bitte keine echten Zugangsdaten eingeben.</p><div style="max-width:360px">
+ <label>E-Mail</label><input type="text" value="anna.muster@example.ch" readonly>
+ <label>Passkey / Zweiter Faktor</label><input type="text" value="••••••" readonly>
+ <div class="actions" style="justify-content:flex-start"><button class="pri" onclick="next()">Anmelden</button></div></div>`},
+
+{id:'portal',only:'ekonto',sys:['','eportal.kanton.example/meine-geschaefte'],kap:['7.1 Zugang'],t:'Meine Geschäfte im ePortal',st:[null,null],
+ n:'Im ePortal sieht die angemeldete Person alle ihre Geschäfte mit Status und offenen Aufgaben. Von hier startet sie ein neues Gesuch.',
+ r:()=>`<h3>Guten Tag, Anna Muster</h3>
+ <table class="tbl"><tr><th>Geschäft</th><th>Nummer</th><th>Status</th></tr>
+ <tr><td>Gesuch Plakatstelle</td><td>BBG-25-00877</td><td><span class="badge grey">Abgeschlossen</span></td></tr>
+ <tr><td>Entwurf Kanalisationsbegehren</td><td>–</td><td><span class="badge">Entwurf</span></td></tr></table>
+ <div class="actions" style="justify-content:flex-start"><button class="pri" onclick="next()">＋ Neues Gesuch: Kanalisationsbegehren</button></div>`},
+
+{id:'f1',sys:['','formulare.kanton.example/kanalisationsbegehren'],kap:['4.1 Formularlogik','3.3 Vertretung','11.5 Sprachen'],t:'Formular Schritt 1: Wer reicht ein?',st:['Entwurf',null],
+ n:()=>gast()?'Als Gast erfasst die Person ihre Daten selbst.':'Name, Adresse und E-Mail kommen aus dem eKonto (grün hinterlegt) und bleiben änderbar.',
+ extra:'Vertretung ankreuzen: Dann erscheint ein zusätzliches Pflichtfeld für die Vollmacht. Oben rechts im Formular ist die Sprachwahl DE/FR/EN angedeutet.',
+ enter:()=>{if(!gast()){for(const k in EK) if(!S.d[k]) S.d[k]=EK[k]}},
+ r:()=>formHead(1)+`
+ <div class="row"><div class="${fe('name')}"><label>Name *</label><input type="text" class="${gast()?'':'pref'}" value="${v('name')}" oninput="S.d.name=this.value">${em('name')}</div>
+ <div class="${fe('email')}"><label>E-Mail *</label><input type="text" class="${gast()?'':'pref'}" value="${v('email')}" oninput="S.d.email=this.value">${em('email')}</div></div>
+ <div class="${fe('adresse')}"><label>Adresse *</label><input type="text" class="${gast()?'':'pref'}" value="${v('adresse')}" oninput="S.d.adresse=this.value">${em('adresse')}</div>
+ ${gast()?'':'<p class="hint">Grün = aus dem eKonto übernommen, änderbar.</p>'}
+ <label><input type="checkbox" ${S.d.vertretung?'checked':''} onchange="S.d.vertretung=this.checked;render()"> Ich reiche im Namen einer anderen Person ein (z. B. als Architekt)</label>
+ ${S.d.vertretung?`<div class="box hl"><b>Vollmacht erforderlich</b><p class="hint">Dieses Feld erscheint nur bei Vertretung.</p>
+ <div class="att"><span>${S.d.vollmacht?'📄 vollmacht.pdf':'Noch keine Datei'}</span><button onclick="S.d.vollmacht=true;render()">Datei wählen</button></div></div>`:''}
+ `+formFoot(['name','email','adresse'])},
+
+{id:'f2',sys:['','formulare.kanton.example/kanalisationsbegehren'],kap:['4.1 Formularlogik','4.2 Formularvorprüfung','4.3 Zwischenspeichern'],t:'Schritt 2: Das Vorhaben',st:['Entwurf',null],
+ n:'Das Formular prüft Pflichtfelder, bevor es weitergeht. Bei «Gewerbliches Abwasser: ja» erscheinen ein zusätzliches Feld und ein zusätzlicher Pflichtanhang.',
+ extra:()=>gast()?'Klick auf «Weiter» ohne Eingaben zeigt die Formularprüfung. Mit «Zwischenspeichern» zeigen wir, wie ein Gast später weitermacht.':'Klick auf «Weiter» ohne Eingaben zeigt die Formularprüfung. «Zwischenspeichern» legt den Entwurf im eKonto ab.',
+ r:()=>formHead(2)+`
+ <div class="${fe('liegenschaft')}"><label>Adresse Liegenschaft *</label><input type="text" value="${v('liegenschaft')}" oninput="S.d.liegenschaft=this.value">${em('liegenschaft')}</div>
+ <div class="row"><div class="${fe('parzelle')}"><label>Parzellennummer *</label><input type="text" value="${v('parzelle')}" oninput="S.d.parzelle=this.value">${em('parzelle')}</div>
+ <div class="${fe('art')}"><label>Art des Vorhabens *</label><select onchange="S.d.art=this.value"><option value="">Bitte wählen</option>${['Neuanschluss','Änderung bestehender Anschluss','Rückbau'].map(o=>`<option ${S.d.art===o?'selected':''}>${o}</option>`).join('')}</select>${em('art')}</div></div>
+ <label>Fällt gewerbliches Abwasser an? *</label>
+ <label style="display:inline"><input type="radio" name="g" ${S.d.gewerbe==='nein'?'checked':''} onchange="S.d.gewerbe='nein';render()"> nein</label>
+ <label style="display:inline;margin-left:16px"><input type="radio" name="g" ${S.d.gewerbe==='ja'?'checked':''} onchange="S.d.gewerbe='ja';render()"> ja</label>${em('gewerbe')}
+ ${S.d.gewerbe==='ja'?`<div class="box hl ${fe('abwasser')}"><label>Art des gewerblichen Abwassers *</label><input type="text" value="${v('abwasser')}" oninput="S.d.abwasser=this.value">${em('abwasser')}<p class="hint">Eingeblendet, weil «ja» gewählt ist. Zusätzlich wird im nächsten Schritt ein Entwässerungskonzept verlangt.</p></div>`:''}
+ `+formFoot(['liegenschaft','parzelle','art','gewerbe'].concat(S.d.gewerbe==='ja'?['abwasser']:[]),gast()?'gdraft':true)},
+
+{id:'gdraft',only:'gast',sys:['mail','Posteingang · anna.muster@example.ch'],kap:['4.3 Zwischenspeichern','3.2 Einstieg als Gast'],t:'Später weitermachen (Vorschlag)',st:['Entwurf',null],
+ n:'Ein Gast hat kein Konto. Beim Zwischenspeichern erhält er deshalb einen persönlichen Link per E-Mail. Beim Öffnen bestätigt er sich mit einem Code.',
+ enter:fill,
+ r:()=>``+mailBox('Ihr Entwurf: Kanalisationsbegehren',`<p>Guten Tag</p><p>Ihr Entwurf ist gespeichert. Über den folgenden Link können Sie weiterarbeiten. Der Entwurf wird nach Ablauf der Aufbewahrungsfrist gelöscht.</p><p><span class="link" onclick="S.gd=1;render()">➜ Entwurf öffnen</span></p>`)
+ +(S.gd?`<div class="box ${S.gd>1?'okb':'hl'}"><b>Bitte bestätigen Sie sich</b>${S.gd>1?'<p>✅ Bestätigt. Der Entwurf ist wieder offen, und die E-Mail-Adresse gilt als bestätigt.</p><div class="actions"><button class="pri" onclick="next()">Weiter im Formular</button></div>':`<p class="hint">Code an ${S.d.email} gesendet (im Prototyp: <b>482193</b>).</p><input type="text" placeholder="Code" style="max-width:160px"> <button onclick="S.gd=2;S.codeOk=true;render()">Bestätigen</button>`}</div>`:'')},
+
+{id:'f3',sys:['','formulare.kanton.example/kanalisationsbegehren'],kap:['4.1 Formularlogik','11.3 Dateien'],t:'Schritt 3: Anhänge',st:['Entwurf',null],
+ n:'Welche Anhänge verlangt werden, hängt von den Angaben ab. Erlaubte Formate und Grössen legt jedes Formular selbst fest und zeigt sie vor dem Hochladen an.',
+ extra:'Hochgeladene Dateien werden vor der Weiterverarbeitung geprüft.',
+ enter:()=>{if(gast())fill()},
+ r:()=>{const need=['plan'].concat(S.d.gewerbe==='ja'?['konzept']:[]).concat(S.d.vertretung?['vollmacht']:[]);
+ return formHead(3)+need.map(k=>`<div class="att ${S.err[k]?'err':''}"><div><b>${L[k]} *</b><div class="hint">PDF · max. 20 MB</div>${em(k)}</div><div>${S.d[k]?'✅ '+k+'.pdf ':''}<button onclick="S.d.${k}=true;S.err.${k}=0;render()">${S.d[k]?'Ersetzen':'Datei wählen'}</button></div></div>`).join('')+formFoot(need)}},
+
+{id:'f4',sys:['','formulare.kanton.example/kanalisationsbegehren'],kap:['4.4 Einreichen','3.2 Einstieg als Gast'],t:'Schritt 4: Prüfen und einreichen',st:['Entwurf',null],
+ n:()=>gast()?'Als Gast muss die E-Mail-Adresse vor dem Einreichen bestätigt sein. Nur so erreichen die Person später die Rückmeldungen des Kantons.':'Die Person sieht alle Angaben auf einen Blick und reicht ein.',
+ enter:fill,
+ r:()=>formHead(4)+`<table class="tbl">${['name','email','liegenschaft','parzelle','art','gewerbe'].map(k=>`<tr><td class="hint">${L[k]}</td><td>${S.d[k]}</td></tr>`).join('')}
+ <tr><td class="hint">Anhänge</td><td>plan.pdf${S.d.gewerbe==='ja'?', konzept.pdf':''}${S.d.vertretung?', vollmacht.pdf':''}</td></tr></table>
+ ${gast()?`<div class="box ${S.codeOk?'okb':'hl'}"><b>E-Mail-Adresse bestätigen</b>
+ ${S.codeOk?'<p>✅ E-Mail-Adresse bestätigt.</p>':S.code?`<p class="hint">Code an ${S.d.email} gesendet (im Prototyp: <b>482193</b>).</p><input type="text" placeholder="Code" style="max-width:160px"> <button onclick="S.codeOk=true;render()">Bestätigen</button>`:`<p class="hint">Ohne eKonto bestätigen Sie Ihre Adresse mit einem Code.</p><button onclick="S.code=true;render()">Code senden</button>`}</div>`:''}
+ <label><input type="checkbox" checked> Ich bestätige die Richtigkeit meiner Angaben.</label>
+ <div class="actions"><button class="sec" onclick="prev()">Zurück</button><button class="pri" ${gast()&&!S.codeOk?'disabled':''} onclick="next()">Einreichen</button></div>`},
+
+{id:'quit',sys:['mail','Posteingang · anna.muster@example.ch'],kap:['4.4 Einreichen','5.3 Referenznummern'],t:'Eingangsbestätigung',st:['Eingereicht',null],
+ n:'Direkt nach dem Einreichen kommt eine E-Mail mit Eingangsnummer und dem PDF der Eingabe. Die Ersteingabe ist damit abgeschlossen und nicht mehr änderbar.',
+ r:()=>mail('Eingangsbestätigung Kanalisationsbegehren '+ENR,`<p>Guten Tag ${S.d.name}</p><p>Wir haben Ihr Kanalisationsbegehren erhalten.</p><p><b>Eingangsnummer: ${ENR}</b></p><p>📎 Kanalisationsbegehren_${ENR}.pdf</p><p class="hint">Sobald Ihr Geschäft eröffnet ist, erhalten Sie zusätzlich die Geschäftsnummer.</p>`)},
+
+{id:'flow',sys:['back','Hinter den Kulissen · Schnittstelle'],kap:['5 Übergabe an BBG+'],t:'Übergabe an BBG+',st:()=>[S.flowStep>=4?'Übermittelt':(S.fail&&S.flowStep>=1?'Übermittlung ausstehend':'Eingereicht'),S.flowStep>=4?'Eingegangen':null],
+ n:'Die Eingabe geht automatisch an die Fachanwendung BBG+: strukturierte Daten, das PDF und die Anhänge. BBG+ eröffnet das Geschäft und meldet die Geschäftsnummer zurück. Niemand muss etwas abtippen.',
+ extra:'«BBG+ nicht erreichbar» einschalten zeigt, was bei einem Ausfall passieren soll.',
+ r:()=>{const f=S.flowStep,c=i=>f>i?'ok':f===i?'act':'';const bad=S.fail&&f===1;
+ return `<h3>Automatische Übermittlung</h3>
+ <label><input type="checkbox" ${S.fail?'checked':''} onchange="S.fail=this.checked;S.flowStep=0;render()"> BBG+ nicht erreichbar simulieren</label>
+ <div class="flow"><div class="node ${c(0)}">📝 Formularservice<br><small>Eingabe ${ENR}</small></div><div class="arrow">→</div>
+ <div class="node ${bad?'bad':c(1)}">🔀 Schnittstelle<br><small>Daten + PDF + Anhänge</small></div><div class="arrow">→</div>
+ <div class="node ${c(2)}">🗂️ BBG+<br><small>Geschäft eröffnen</small></div><div class="arrow">→</div>
+ <div class="node ${c(3)}">🔢 Rückmeldung<br><small>${f>=4?GNR:'Geschäftsnummer'}</small></div></div>
+ <div class="log">${flowLog()}</div>
+ <div class="actions">${f<4?`<button class="pri" onclick="flowRun()">${bad?'Erneut versuchen':'Übermittlung abspielen'}</button>`:`<button class="pri" onclick="next()">Weiter</button>`}</div>`}},
+
+{id:'sb1',sys:['bbg','BBG+ · Sachbearbeitung (intern, schematisch)'],kap:['6.1 Vorprüfung','6.3 Anforderung'],t:'Anforderung aus BBG+',st:['Übermittelt','In Prüfung'],
+ n:'In BBG+ prüft eine Sachbearbeiterin das Gesuch. Fehlt etwas, startet sie in BBG+ eine Anforderung der Art «Ergänzung»: Sie markiert die betroffenen Felder und Anhänge, schreibt, was noch fehlt, und setzt eine Frist. Der Gesuchsteller erhält daraufhin eine Nachricht.',
+ extra:'Damit das Markieren einzelner Felder funktioniert, muss BBG+ die Struktur des Formulars kennen. Das ist eine wichtige Abhängigkeit. Die Ansicht ist bewusst schematisch, BBG+ wird nicht neu gebaut.',
+ enter:fill,
+ r:()=>`<h3>Geschäft ${GNR} · Kanalisationsbegehren</h3>
+ <p class="hint">Eingang ${ENR} · ${S.d.name} · ${S.d.liegenschaft}</p>
+ <div class="box"><b>Anforderung an den Gesuchsteller</b><label>Art der Anforderung</label><select><option selected>Ergänzung (Angaben oder Dokumente nachreichen)</option><option>Meldung</option></select></div>
+ <div class="box"><b>Felder und Anhänge markieren</b>
+ ${['liegenschaft','parzelle','art','gewerbe','plan'].map(k=>`<label><input type="checkbox" ${S.marks.includes(k)?'checked':''} onchange="tog('${k}')"> ${L[k]}: <span style="color:var(--ink)">${k==='plan'?'plan.pdf':S.d[k]}</span></label>`).join('')}</div>
+ <label>Was der Gesuchsteller noch einreichen muss</label><textarea rows="3" oninput="S.sbText=this.value">${S.sbText}</textarea>
+ <div class="row"><div><label>Frist</label><input type="date" value="${S.frist}" onchange="S.frist=this.value"></div><div></div></div>
+ <div class="actions"><button class="bbg" onclick="next()">Anforderung senden</button></div>`},
+
+{id:'mail2',sys:['mail','Posteingang · anna.muster@example.ch'],kap:['6.4 Benachrichtigung'],t:'Nachricht: Was noch fehlt',st:['Übermittelt','Anforderung offen'],
+ n:()=>gast()?'Als Gast kommt die Rückmeldung nur per E-Mail: mit Kurzinfo, Nummern und einem Link. Dokumente sind nicht im Mail, sondern nur hinter dem Link.':'Mit eKonto erscheint die Rückmeldung im ePortal, zusätzlich kommt eine E-Mail mit Kurzinfo und Link. Dokumente sind nur hinter dem Link abrufbar.',
+ r:()=>mail('Was Sie noch einreichen müssen: '+GNR,`<p>Guten Tag ${S.d.name}</p><p>Zu Ihrem Kanalisationsbegehren (${ENR} / ${GNR}) benötigen wir noch Angaben.</p><p><b>Bitte einreichen:</b> korrigierte Parzellennummer, aktueller Situationsplan. Frist: ${fmt(S.frist)}</p><p><span class="link" onclick="next()">➜ Zum Geschäft</span></p>`)},
+
+{id:'case1',sys:['','formulare.kanton.example/geschaeft/'+GNR],kap:['7 Fallansicht'],t:'Die Fallansicht',st:['Übermittelt','Anforderung offen'],
+ n:'Hinter dem Link sieht die Person alles an einem Ort: das Geschäft, was jetzt zu tun ist, den Verlauf, die Formularversionen und die Dokumente.',
+ extra:'Zwei Varianten unten zeigen: eine Nachricht an die Sachbearbeitung und was bei einem nahenden Fristablauf passiert.',
+ r:()=>caseView({todo:true})},
+
+{id:'chg',sys:['','formulare.kanton.example/geschaeft/'+GNR+'/aenderung'],kap:['8 Ergänzung'],t:'Die Ergänzung',st:['Entwurf','Anforderung offen'],
+ n:'Die Ergänzung öffnet das Formular mit dem letzten Stand. Alles bleibt änderbar, die markierten Stellen sind gelb hervorgehoben, mit dem Hinweis der Sachbearbeitung.',
+ extra:'Parzellennummer korrigieren und einen neuen Plan hochladen.',
+ enter:()=>{if(!S.v2) S.v2={parzelle:S.d.parzelle,plan:false}},
+ r:()=>`<h3>Ergänzung zu ${GNR}</h3><div class="box hl"><b>Was noch fehlt (aus BBG+)</b><p style="margin:4px 0 0">${S.sbText}</p><p class="hint">Frist: ${fmt(S.frist)}</p></div>
+ ${['liegenschaft','parzelle','art'].map(k=>{const m=S.marks.includes(k);const val=k==='parzelle'?S.v2.parzelle:S.d[k];return `<div class="${m?'marked':''}"><label>${L[k]}${m?' <span class="sb">· markiert</span>':''}</label><input type="text" value="${val}" ${k==='parzelle'?'oninput="S.v2.parzelle=this.value"':''}></div>`}).join('')}
+ <div class="${S.marks.includes('plan')?'marked':''}"><div class="att"><div><b>Situationsplan (PDF)</b>${S.marks.includes('plan')?' <span class="sb">· markiert</span>':''}<div class="hint">bisher: plan.pdf</div></div><div>${S.v2.plan?'✅ plan_v2.pdf ':''}<button onclick="S.v2.plan=true;render()">Neue Datei</button></div></div></div>
+ <div class="actions"><button class="sec" onclick="toast('Entwurf gespeichert')">Zwischenspeichern</button><button class="pri" onclick="fixV2();next()">Ergänzung einreichen</button></div>`},
+
+{id:'case2',sys:['','formulare.kanton.example/geschaeft/'+GNR],kap:['7.2 Formularversionen','8.3 Einreichen'],t:'Version 2 mit Vergleich',st:['Übermittelt','In Prüfung'],
+ n:'Jede Einreichung bleibt als eigene Version erhalten. Was sich gegenüber der Vorversion geändert hat, ist grün hervorgehoben. Das sieht auch die Sachbearbeitung.',
+ r:()=>`<h3>Versionsvergleich</h3><table class="tbl"><tr><th>Feld</th><th>Version 1</th><th>Version 2</th></tr>
+ ${['liegenschaft','parzelle','art','gewerbe'].map(k=>{const a=S.d[k],b=k==='parzelle'?S.v2.parzelle:S.d[k];return `<tr class="${a!==b?'chg':''}"><td>${L[k]}</td><td>${a}</td><td>${b}${a!==b?' ✏️':''}</td></tr>`}).join('')}
+ <tr class="chg"><td>Situationsplan</td><td>plan.pdf</td><td>plan_v2.pdf ✏️</td></tr></table>
+ <p class="hint">Status zurück auf «In Prüfung». Die Person hat eine Eingangsbestätigung per E-Mail erhalten.</p>
+ <div class="actions"><button class="pri" onclick="next()">Weiter zur Sachbearbeitung</button></div>`},
+
+{id:'sb2',sys:['bbg','BBG+ · Sachbearbeitung (intern, schematisch)'],kap:['6.2 Entscheid','6.5 Zustellung'],t:'Der Entscheid',st:['Übermittelt','In Prüfung'],
+ n:'Die Sachbearbeitung entscheidet. Bewilligung oder Ablehnung gehen als Dokument in die Fallansicht. Beide Wege lassen sich hier auswählen.',
+ extra:'Ob die digitale Zustellung rechtlich als Eröffnung gilt, wird pro Verfahren festgelegt. Wo sie gilt, wird der Abruf protokolliert.',
+ r:()=>`<h3>Geschäft ${GNR}</h3><p><span class="badge g">Version 2 vollständig</span></p>
+ <div class="box"><b>Entscheid</b>
+ <label><input type="radio" name="e" ${!abl()?'checked':''} onchange="S.entscheid='bewilligung';render()"> Bewilligung erteilen</label>
+ <label><input type="radio" name="e" ${abl()?'checked':''} onchange="S.entscheid='ablehnung';render()"> Ablehnen</label>
+ ${abl()?`<label>Begründung</label><textarea rows="2">Der Anschluss an die bestehende Leitung ist hydraulisch nicht möglich.</textarea>`:''}
+ <p class="hint">Dokument: ${abl()?'Ablehnung':'Bewilligung'}_${GNR}.pdf</p></div>
+ <div class="actions"><button class="bbg" onclick="next()">Entscheid zustellen</button></div>`},
+
+{id:'case3',sys:['','formulare.kanton.example/geschaeft/'+GNR],kap:()=>abl()?['6.2 Entscheid','7 Fallansicht']:['9 Nachtrag'],t:()=>abl()?'Das Gesuch ist abgelehnt':'Später ändert sich etwas',st:['Übermittelt','Entschieden'],
+ n:()=>abl()?'Die Person sieht die Ablehnung mit Begründung als Dokument in der Fallansicht. Ein Nachtrag wäre bis zum Abschluss weiterhin möglich. Im Prototyp gehen wir direkt zum Abschluss.':'Die Bewilligung liegt vor. Monate später verkauft die Eigentümerin die Liegenschaft. Ohne Aufforderung des Kantons startet sie in der Fallansicht einen Nachtrag. Das geht bis zum Abschluss des Geschäfts.',
+ r:()=>caseView({decided:true})},
+
+{id:'nach',skip:abl,sys:['','formulare.kanton.example/geschaeft/'+GNR+'/nachtrag'],kap:['9.3 Inhalt','9.4 Einreichen'],t:'Der Nachtrag',st:['Entwurf','Entschieden'],
+ n:'Das ganze Formular öffnet sich vorausgefüllt mit dem letzten Stand. Die Person ändert, was sich geändert hat. Geänderte Felder werden sofort grün hervorgehoben.',
+ extra:'Zum Beispiel die Eigentümerschaft auf «Bauhaus Immobilien AG» ändern. Beim Einreichen entsteht in BBG+ automatisch eine Pendenz.',
+ enter:()=>{if(!S.nt){S.ntBase={eigentum:S.d.name,liegenschaft:S.d.liegenschaft,parzelle:S.v2?S.v2.parzelle:S.d.parzelle,art:S.d.art,abwasser:S.d.abwasser||''};S.nt={...S.ntBase}}},
+ r:()=>`<h3>Nachtrag zu ${GNR}</h3><p class="hint">Vorausgefüllt mit Version 2. Alle Felder sind änderbar.</p>
+ ${['eigentum','liegenschaft','parzelle','art','abwasser'].map(k=>`<div class="${S.nt[k]!==S.ntBase[k]?'chg':''}"><label>${L[k]}</label><input type="text" value="${(S.nt[k]||'').replace(/"/g,'&quot;')}" oninput="S.nt.${k}=this.value;this.parentElement.classList.toggle('chg',this.value!==S.ntBase.${k})"></div>`).join('')}
+ <div class="att"><span>Nachweis zur Änderung (PDF), z. B. Kaufvertrag</span><button onclick="this.textContent='✅ nachweis.pdf'">Datei wählen</button></div>
+ <div class="actions"><button class="sec" onclick="toast('Entwurf gespeichert')">Zwischenspeichern</button><button class="pri" onclick="fixNt();next()">Nachtrag einreichen</button></div>`},
+
+{id:'sb3',sys:['bbg','BBG+ · Sachbearbeitung (intern, schematisch)'],kap:()=>abl()?['10 Statusmodell']:['9.4 Pendenz','8.4 Angeforderte Meldung'],t:()=>abl()?'Abschluss':'Pendenz und Anforderung Meldung',st:()=>['Übermittelt',S.closed?'Abgeschlossen':abl()?'Entschieden':'In Prüfung'],
+ n:()=>abl()?'Nach Ablauf der Rechtsmittelfrist schliesst die Sachbearbeitung das Geschäft ab.':'Der Nachtrag erscheint in BBG+ als Pendenz. Nach der Bearbeitung startet die Sachbearbeitung eine zweite Anforderung, diesmal der Art «Meldung»: Der Gesuchsteller soll das Bauende melden.',
+ r:()=>`<h3>Pendenzen</h3><table class="tbl"><tr><th>Geschäft</th><th>Pendenz</th><th></th></tr>
+ <tr><td>${GNR}</td><td>${abl()?'Rechtsmittelfrist abgelaufen':'Nachtrag: '+(S.ntChanged.map(k=>L[k]).join(', ')||'Eigentümerschaft')+' geändert'}</td><td>${S.closed||!abl()?'<span class="badge g">erledigt</span>':'<span class="badge w">neu</span>'}</td></tr></table>
+ ${!abl()&&S.nt?`<p class="hint">Neu: ${S.ntChanged.map(k=>L[k]+' = '+S.nt[k]).join(' · ')}</p>`:''}
+ ${abl()?`<div class="actions">${S.closed?'<button class="pri" onclick="next()">Weiter</button>':'<button class="bbg" onclick="S.closed=true;render()">Geschäft abschliessen</button>'}</div>`:
+ `<div class="box"><b>Anforderung an den Gesuchsteller</b><label>Art der Anforderung</label><select><option>Ergänzung (Angaben oder Dokumente nachreichen)</option><option selected>Meldung</option></select>
+ <label>Meldeformular</label><select><option selected>Meldung Bauende Hausanschluss</option><option>Meldung Kontrolle Dichtheitsprüfung</option></select>
+ <label>Was der Gesuchsteller melden muss</label><textarea rows="2">Bitte melden Sie das Bauende des Hausanschlusses und legen Sie Fotos des offenen Anschlusses bei.</textarea>
+ <div class="row"><div><label>Frist</label><input type="date" value="2027-06-30"></div><div></div></div></div>
+ <div class="actions"><button class="bbg" onclick="next()">Anforderung senden</button></div>`}`},
+
+{id:'mailM',skip:abl,sys:['mail','Posteingang · anna.muster@example.ch'],kap:['6.4 Benachrichtigung','8.4 Angeforderte Meldung'],t:'Nachricht: Was noch zu melden ist',st:['Übermittelt','Anforderung offen'],
+ n:'Auch die Meldung startet in BBG+. Der Gesuchsteller erhält dieselbe Art Nachricht wie bei der Ergänzung: was er melden muss, bis wann, und einen Link ins Geschäft.',
+ r:()=>mail('Was Sie noch melden müssen: '+GNR,`<p>Guten Tag ${S.d.name}</p><p>Zu Ihrem Kanalisationsbegehren (${GNR}) erwarten wir eine Meldung.</p><p><b>Bitte melden:</b> Bauende Hausanschluss mit Fotos. Frist: 30.06.2027</p><p><span class="link" onclick="next()">➜ Zum Geschäft</span></p>`)},
+
+{id:'meldF',skip:abl,sys:['','formulare.kanton.example/geschaeft/'+GNR+'/meldung'],kap:['8.4 Angeforderte Meldung'],t:'Die angeforderte Meldung',st:['Entwurf','Anforderung offen'],
+ n:'Der Link führt direkt ins richtige Meldeformular. Angaben aus dem Geschäft sind schon vorausgefüllt, die Person ergänzt nur das, was der Kanton verlangt.',
+ r:()=>`<h3>Meldung Bauende Hausanschluss · ${GNR}</h3><div class="box hl"><b>Was gemeldet werden muss (aus BBG+)</b><p style="margin:4px 0 0">Bitte melden Sie das Bauende des Hausanschlusses und legen Sie Fotos des offenen Anschlusses bei.</p><p class="hint">Frist: 30.06.2027</p></div>
+ <div class="row"><div><label>Liegenschaft</label><input type="text" class="pref" value="${S.d.liegenschaft}"></div><div><label>Eigentümerschaft</label><input type="text" class="pref" value="${S.nt?S.nt.eigentum:S.d.name}"></div></div>
+ <div class="row"><div><label>Fertigstellung am *</label><input type="date" value="2027-05-14"></div><div><label>Ausführende Firma *</label><input type="text" value="Kanalbau Rhein AG"></div></div>
+ <div class="att"><span>Fotos offener Anschluss (PDF/JPG) *</span><button onclick="this.textContent='✅ fotos.pdf'">Datei wählen</button></div>
+ <p class="hint">Grün = aus dem Geschäft übernommen.</p>
+ <div class="actions"><button class="pri" onclick="next()">Meldung einreichen</button></div>`},
+
+{id:'sb4',skip:abl,sys:['bbg','BBG+ · Sachbearbeitung (intern, schematisch)'],kap:['10 Statusmodell'],t:'Meldung eingegangen, Abschluss',st:()=>['Übermittelt',S.closed?'Abgeschlossen':'In Prüfung'],
+ n:'Die Meldung kommt als Pendenz in BBG+ zurück. Ist alles in Ordnung, schliesst die Sachbearbeitung das Geschäft ab.',
+ r:()=>`<h3>Pendenzen</h3><table class="tbl"><tr><th>Geschäft</th><th>Pendenz</th><th></th></tr>
+ <tr><td>${GNR}</td><td>Meldung Bauende Hausanschluss eingegangen</td><td>${S.closed?'<span class="badge g">erledigt</span>':'<span class="badge w">neu</span>'}</td></tr></table>
+ <div class="actions">${S.closed?'<button class="pri" onclick="next()">Weiter</button>':'<button class="bbg" onclick="S.closed=true;render()">Meldung geprüft, Geschäft abschliessen</button>'}</div>`},
+
+{id:'case4',sys:['','formulare.kanton.example/geschaeft/'+GNR],kap:['7.3 Verfügbarkeit','9.2 Zeitpunkt'],t:'Abgeschlossen',st:['Übermittelt','Abgeschlossen'],
+ n:'Das Geschäft ist abgeschlossen. Ein Nachtrag ist nicht mehr möglich, die Schaltfläche ist weg. Die Fallansicht bleibt ein Jahr abrufbar, danach sind die Unterlagen beim Kanton erhältlich.',
+ r:()=>caseView({closed:true})},
+
+/* --- Meldung --- */
+{id:'m1',m:1,sys:['','formulare.kanton.example/meldung-schaden-hausanschluss'],kap:['1.3 Meldung','4 Ersteingabe'],t:'Eigenständige Meldung',st:['Entwurf',null],
+ n:'Neben den angeforderten Meldungen gibt es Meldungen, die der Gesuchsteller selbst startet, ohne Aufforderung des Kantons. Hier zum Beispiel die Meldung eines Leitungsschadens. Das Formular funktioniert gleich wie die Ersteingabe.',
+ r:()=>`<h3>Meldung Schaden an Hausanschlussleitung</h3><div class="steps"><span class="on">1. Angaben</span><span class="lang">${langSw()}</span></div>
+ <div class="row"><div><label>Name *</label><input type="text" class="pref" value="Anna Muster"></div><div><label>E-Mail *</label><input type="text" class="pref" value="anna.muster@example.ch"></div></div>
+ <label>Adresse Liegenschaft *</label><input type="text" value="Feldbergstrasse 40, 4057 Basel">
+ <div class="row"><div><label>Bezug zu Geschäft (falls vorhanden)</label><input type="text" value=""></div><div><label>Schaden festgestellt am *</label><input type="date" value="2027-08-02"></div></div>
+ <div class="att"><span>Fotos Schaden (PDF/JPG)</span><button onclick="this.textContent='✅ fotos.pdf'">Datei wählen</button></div>
+ <div class="actions"><button class="pri" onclick="next()">Meldung einreichen</button></div>`},
+{id:'m2',m:1,sys:['back','Hinter den Kulissen · Schnittstelle'],kap:['5.1 Geschäftseröffnung','4.4 Einreichen'],t:'Auch Meldungen werden ein Geschäft',st:['Übermittelt','Eingegangen'],
+ n:'Die Person erhält eine Eingangsbestätigung mit PDF. Die Meldung geht automatisch an BBG+ und wird dort ebenfalls als Geschäft geführt, aber ohne Rückmeldeschlaufe.',
+ r:()=>`<div class="flow"><div class="node ok">📝 Meldung<br><small>${MNR}</small></div><div class="arrow">→</div><div class="node ok">🗂️ BBG+<br><small>Geschäft ${MGNR}</small></div><div class="arrow">→</div><div class="node act">✔️ Kenntnisnahme<br><small>keine Anforderung</small></div></div>`+mail('Eingangsbestätigung Meldung '+MNR,`<p>Guten Tag Anna Muster</p><p>Wir haben Ihre Meldung erhalten. Eingangsnummer: <b>${MNR}</b></p><p>📎 Meldung_${MNR}.pdf</p>`)},
+{id:'m3',m:1,sys:['','eportal.kanton.example/meine-geschaefte'],kap:['10.2 Status Meldung'],t:'Eigenständige Meldung erledigt',st:['Übermittelt','Abgeschlossen'],
+ n:'Die Meldung kennt nur zwei Status: eingegangen und abgeschlossen.',
+ r:()=>`<h3>Meine Geschäfte</h3><table class="tbl"><tr><th>Geschäft</th><th>Nummer</th><th>Status</th></tr>
+ <tr><td>Meldung Schaden Hausanschlussleitung</td><td>${MGNR}</td><td><span class="badge grey">Abgeschlossen</span></td></tr>
+ <tr><td>Kanalisationsbegehren</td><td>${GNR}</td><td><span class="badge grey">Abgeschlossen</span></td></tr></table>
+ <div class="actions"><button onclick="restart('gast')">Gesuch als Gast</button><button class="pri" onclick="restart('ekonto')">Gesuch mit eKonto</button></div>`},
+
+];
+
+/* ---------- Bausteine ---------- */
+function v(k){return (S.d[k]??'').toString().replace(/"/g,'&quot;')}
+function fe(k){return S.err[k]?'err':''}
+function em(k){return S.err[k]?'<div class="errmsg">Bitte ausfüllen</div>':''}
+function fmt(d){const [y,m,t]=d.split('-');return t+'.'+m+'.'+y}
+function tog(k){S.marks=S.marks.includes(k)?S.marks.filter(x=>x!==k):S.marks.concat(k)}
+function fixV2(){if(S.v2.parzelle===S.d.parzelle)S.v2.parzelle='1243';S.v2.plan=true}
+function fixNt(){S.ntChanged=Object.keys(S.nt).filter(k=>S.nt[k]!==S.ntBase[k]);if(!S.ntChanged.length){S.nt.eigentum='Bauhaus Immobilien AG';S.ntChanged=['eigentum']}}
+function langSw(){return ['DE','FR','EN'].map(l=>`<a class="${S.lang===l?'on':''}" onclick="S.lang='${l}';render();toast('Sprachwahl ${l}: im Prototyp nur angedeutet')">${l}</a>`).join('|')}
+function formHead(n){return `<h3>Kanalisationsbegehren</h3><div class="steps">${['Gesuchsteller','Vorhaben','Anhänge','Prüfen'].map((s,i)=>`<span class="${i+1===n?'on':''}">${i+1}. ${s}</span>`).join('')}<span class="lang">${langSw()}</span></div>`}
+function formFoot(req,save){const sv=save==='gdraft'?`check(${q(req)},'gdraft')`:`toast('Entwurf gespeichert · Status: Entwurf')`;
+ return `<div class="actions">${S.step>0?'<button class="sec" onclick="prev()">Zurück</button>':''}<button class="sec" onclick="${sv}">Zwischenspeichern</button><button class="pri" onclick="check(${q(req)},'${save==='gdraft'?'skipg':''}')">Weiter</button></div>`}
+function q(a){return JSON.stringify(a).replace(/"/g,"'")}
+function check(req,how){S.err={};if(how!=='gdraft')req.forEach(k=>{if(!S.d[k]) S.err[k]=1});
+ if(Object.keys(S.err).length){render();toast('Bitte markierte Pflichtfelder ausfüllen');return}
+ if(how==='skipg'){S.skipG=true;S.step++;}
+ if(how==='gdraft')S.skipG=false;
+ next()}
+function mailBox(subj,body){return `<div class="mailbox"><div class="mailhead"><b>${subj}</b><br>Von: Kanton (Prototyp) &lt;noreply@kanton.example&gt;</div><div class="mailbody">${body}</div></div>`}
+function mail(subj,body){return mailBox(subj,body)+`<div class="actions"><button class="pri" onclick="next()">Weiter</button></div>`}
+function flowLog(){const f=S.flowStep,l=[];if(f>=1)l.push('→ Eingabe '+ENR+' an Schnittstelle übergeben');
+ if(S.fail&&f===1){l.push('✖ BBG+ nicht erreichbar. Eingabe bleibt in der Warteschlange.');l.push('  Status: Übermittlung ausstehend. Gesuchsteller muss nichts tun.')}
+ if(f>=2)l.push('→ Strukturierte Daten, PDF und Anhänge an BBG+ gesendet');if(f>=3)l.push('✔ Geschäft in BBG+ eröffnet');if(f>=4)l.push('✔ Geschäftsnummer '+GNR+' an Formularservice zurückgemeldet');return l.join('\n')||'Bereit.'}
+function flowRun(){if(S.fail&&S.flowStep===1){S.fail=false}
+ const go=()=>{S.flowStep++;render();if(S.flowStep===1&&S.fail)return;if(S.flowStep<4)setTimeout(go,700)};go()}
+function sendMsg(){const t=$('msgIn').value.trim()||'Ist auch ein Plan im Format A3 möglich?';S.msgs.push(t);render();toast('Nachricht an die Sachbearbeitung gesendet')}
+function caseView(o){const st=o.closed?'Abgeschlossen':o.decided?'Entschieden':'Anforderung offen';
+ const dec=abl()?'Ablehnung':'Bewilligung';
+ const docsK=['Anforderung_Ergaenzung.pdf'].concat(o.decided||o.closed?[dec+'_'+GNR+'.pdf']:[]);
+ const ver=o.todo?['Version 1 · Einreichung · 28.10.2026']:['Version 1 · Einreichung · 28.10.2026','Version 2 · Ergänzung · 05.11.2026'].concat(o.closed&&!abl()?['Version 3 · Nachtrag · 01.03.2027','Meldung Bauende · 14.05.2027']:[]);
+ return `<h3>Kanalisationsbegehren · ${S.d.liegenschaft||DEF.liegenschaft}</h3>
+ <p><span class="badge">${ENR}</span> <span class="badge">${GNR}</span> <span class="badge ${o.closed?'grey':o.decided?(abl()?'r':'g'):'w'}">${st}</span> ${o.todo?'<span class="badge w">Frist '+fmt(S.frist)+'</span>':''}</p>
+ ${o.todo?`<div class="box hl"><b>Nächster Schritt: Ergänzung einreichen</b><p style="margin:6px 0">${S.sbText}</p><p class="hint">Markiert: ${S.marks.map(k=>L[k]).join(', ')}</p><button class="pri" onclick="next()">Ergänzung ausfüllen</button></div>
+ <div class="box var"><b>Nachricht an die Sachbearbeitung</b>
+ ${S.msgs.map(m=>`<div class="msg">Sie: ${m}</div>`).join('')}
+ <div style="display:flex;gap:8px;margin-top:6px"><input type="text" id="msgIn" placeholder="Ihre Frage zur Anforderung"><button onclick="sendMsg()">Senden</button></div></div>
+ <div class="box var"><b>Variante: Frist läuft bald ab</b>
+ ${S.showFrist?`<p class="hint">Fünf Tage vor Ablauf, falls nichts eingereicht wurde:</p>`+mailBox('Erinnerung: Frist läuft am '+fmt(S.frist)+' ab',`<p>Zu Ihrem Gesuch ${GNR} fehlen noch Angaben. Die Frist läuft am ${fmt(S.frist)} ab.</p><p><span class="link">➜ Zum Geschäft</span></p>`)+`<div class="box" style="background:#f3f0fa;border-color:var(--bbg)"><b>Hinweis in BBG+</b><p class="hint" style="margin:4px 0 0">Nach Fristablauf: Pendenz «Frist abgelaufen» für die Sachbearbeitung. Diese entscheidet über das weitere Vorgehen.</p></div><button onclick="S.showFrist=false;render()">Variante schliessen</button>`:`<p class="hint">Zeigt Erinnerung an den Gesuchsteller und Hinweis an die Sachbearbeitung.</p><button onclick="S.showFrist=true;render()">Variante zeigen</button>`}</div>`:''}
+ ${o.decided?(abl()?`<div class="box nob"><b>Gesuch abgelehnt</b><p class="hint">Ablehnung_${GNR}.pdf mit Begründung und Rechtsmittelbelehrung · Abruf wird protokolliert</p></div>`:`<div class="box okb"><b>Bewilligung erteilt</b><p class="hint">Bewilligung_${GNR}.pdf · Abruf wird protokolliert</p></div>`):''}
+ ${o.closed?`<div class="box"><b>Geschäft abgeschlossen</b><p class="hint">Abrufbar bis ${abl()?'12.12.2027':'20.05.2028'}. Danach beim Kanton erhältlich.</p></div>`:''}
+ <details><summary>Verlauf</summary><div class="tl">
+ ${o.closed?(abl()?'<div><small>12.12.2026</small><br>Geschäft abgeschlossen</div>':'<div><small>20.05.2027</small><br>Geschäft abgeschlossen</div><div><small>14.05.2027</small><br>Meldung Bauende eingereicht</div><div><small>15.04.2027</small><br>Anforderung «Meldung» der Sachbearbeitung</div><div><small>01.03.2027</small><br>Nachtrag eingegangen und erledigt</div>'):''}
+ ${o.decided||o.closed?`<div><small>12.11.2026</small><br>Entscheid: ${abl()?'Gesuch abgelehnt':'Bewilligung erteilt'}</div><div><small>05.11.2026</small><br>Ergänzung eingereicht (Version 2)</div>`:''}
+ ${S.msgs.map(m=>`<div><small>30.10.2026</small><br>Nachricht an Sachbearbeitung: ${m}</div>`).join('')}
+ <div><small>29.10.2026</small><br>Anforderung «Ergänzung» der Sachbearbeitung</div><div><small>28.10.2026</small><br>Geschäft eröffnet (${GNR})</div><div><small>28.10.2026</small><br>Gesuch eingereicht (${ENR})</div></div></details>
+ <details><summary>Formularversionen (${ver.length})</summary>${ver.map(x=>`<div class="att"><span>${x}</span><span class="link">PDF</span></div>`).join('')}</details>
+ <details><summary>Dokumente</summary><p class="hint">Von Ihnen eingereicht</p><div class="att"><span>plan.pdf</span><span class="link">Download</span></div>${o.todo?'':'<div class="att"><span>plan_v2.pdf</span><span class="link">Download</span></div>'}
+ <p class="hint">Vom Kanton</p>${docsK.map(x=>`<div class="att"><span>${x}</span><span class="link">Download</span></div>`).join('')}</details>
+ <div class="actions">${o.closed?'<span class="hint">Nachtrag nicht mehr möglich</span><button onclick="restart(\'gast\')">Neu starten als Gast</button><button onclick="restart(\'meldung\')">Eigenständige Meldung</button><button class="pri" onclick="restart(\'ekonto\')">Neu starten</button>':o.decided?(abl()?'<button class="sec" onclick="toast(\'Nachtrag bis zum Abschluss möglich, im Prototyp nicht gezeigt\')">➕ Nachtrag erfassen</button><button class="pri" onclick="next()">Weiter</button>':'<button class="pri" onclick="next()">➕ Nachtrag erfassen</button>'):'<button class="sec" onclick="toast(\'Im Prototyp: zuerst die Anforderung erledigen\')">➕ Nachtrag erfassen</button>'}</div>`}
+
+/* ---------- Ablauf ---------- */
+function list(){if(S.flow==='meldung')return SC.filter(s=>s.m);return SC.filter(s=>!s.m&&(!s.only||s.only===S.mode)&&!(s.skip&&s.skip()))}
+function cur(){return list()[S.step]}
+function next(){S.err={};if(S.step<list().length-1){S.step++;enter()}}
+function prev(){S.err={};if(S.step>0){S.step--;if(cur().id==='gdraft'&&S.skipG)S.step--;enter()}}
+function enter(){const s=cur(),l=list(),fi=l.findIndex(x=>x.id==='flow');if(fi>=0&&S.step>fi)S.flowStep=4;if(s.enter)s.enter();render();window.scrollTo({top:0,behavior:'smooth'})}
+function restart(m){const keep={pres:document.body.classList.contains('pres')};S=S0();if(m==='meldung'){S.flow='meldung';S.step=0}else{S.mode=m;S.step=1;const L0=list();S.step=L0.findIndex(x=>x.id==='katalog')}enter()}
+function val(x){return typeof x==='function'?x():x}
+function render(){const s=cur(),L2=list();const kap=val(s.kap)||[],t=val(s.t),op=val(s.open)||[];
+ const way=S.flow==='meldung'?' · Meldung':S.step>1?(gast()?' · Weg: Gast':' · Weg: eKonto'):'';
+ $('narr').innerHTML=`<div class="step">Schritt ${S.step+1} von ${L2.length}${way}</div><h2>${t}</h2>
+ <div>${kap.map(k=>`<span class="kap">Kap. ${k}</span>`).join('')}</div><p>${val(s.n)}</p>${s.extra?`<p class="hint">👉 ${val(s.extra)}</p>`:''}
+ 
+ <div class="nav"><button class="sec" onclick="prev()" ${S.step?'':'disabled'}>◀ Zurück</button><button class="pri" onclick="autoNext()" ${S.step<L2.length-1?'':'disabled'}>Weiter ▶</button></div>`;
+ $('cap').innerHTML=`<h2>${t}</h2><div><button class="sec" onclick="prev()" ${S.step?'':'disabled'}>◀</button> <button class="pri" onclick="autoNext()" ${S.step<L2.length-1?'':'disabled'}>▶</button></div>`;
+ const [k,url]=s.sys;$('sys').className='sys '+k;$('sys').innerHTML=`<i></i><span class="url">${url}</span>`;
+ $('stage').innerHTML=s.r();
+ $('dots').innerHTML=L2.map((x,i)=>`<span class="${i===S.step?'on':i<S.step?'done':''}" title="${val(x.t)}" onclick="jump(${i})"></span>`).join('');
+ const st=val(s.st)||[null,null];
+ $('ch1').innerHTML='<b>Status Eingabe</b>'+E_ST.map(x=>`<span class="${x===st[0]?'on':''} ${x==='Übermittlung ausstehend'?'alt':''}">${x}</span>`).join('');
+ const g=S.flow==='meldung'?['Eingegangen','Abgeschlossen']:G_ST;
+ $('ch2').innerHTML='<b>Status Geschäft</b>'+g.map(x=>`<span class="${x===st[1]?'on':''}">${x}</span>`).join('');}
+function autoNext(){const s=cur();if(['f1','f2','f3'].includes(s.id))fill();
+ if(s.id==='katalog'){goto('assist');return}
+ if(s.id==='assist'){if(!S.aRes){S.aRes='kanal';render();return}goto('kdetail');return}
+ if(s.id==='f4'&&gast())S.codeOk=true;
+ if(s.id==='gdraft'){S.gd=2;S.codeOk=true}
+ if(s.id==='flow'&&S.flowStep<4){S.fail=false;S.flowStep=4}
+ if(s.id==='chg')fixV2();
+ if(s.id==='nach')fixNt();
+ if(s.id==='sb3'&&abl())S.closed=true;
+ if(s.id==='sb4')S.closed=true;
+ next()}
+function jump(i){let guard=0;while(S.step<i&&guard++<40)autoNext();if(S.step>i){S.step=i;enter()}}
+function togPres(){const on=document.body.classList.toggle('pres');$('bPres').classList.toggle('on',on);$('bPres').textContent=on?'Notizen einblenden':'Notizen ausblenden'}
+function togOp(){const on=document.body.classList.toggle('noop');$('bOp').classList.toggle('on',on);$('bOp').textContent=on?'Offene Punkte einblenden':'Offene Punkte ausblenden'}
+document.addEventListener('keydown',e=>{if(['INPUT','TEXTAREA','SELECT'].includes(document.activeElement.tagName))return;
+ if(e.key==='ArrowRight')autoNext();else if(e.key==='ArrowLeft')prev();else if(e.key==='n'||e.key==='N')togPres();});
+render();
+</script>
+</body>
+</html>
